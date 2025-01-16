@@ -1,5 +1,8 @@
 # Eris - Modular Conversational AI Framework
 
+![alt text](https://www.erishome.xyz/banner.png)
+
+
 ## Overview
 
 Eris is a highly modular, scalable, and extensible conversational AI framework built in Go. It is designed to provide developers with a robust foundation for building advanced conversational systems that are platform-independent, customizable, and high-performing.
