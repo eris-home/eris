@@ -1,164 +1,198 @@
 # Eris - Modular Conversational AI Framework
 
 ## Overview
-Eris is a scalable, modular AI framework designed to create and manage advanced conversational systems. Built with Go, Eris emphasizes customizability, high performance, and platform flexibility. Its architecture supports:
 
-- Dynamic component swapping through pluggable plugins
-- Multi-model AI integration for flexibility and redundancy
-- Multi-platform conversation management
-- Advanced insight generation and user behavior tracking
-- Semantic data storage powered by vector embeddings
+Eris is a highly modular, scalable, and extensible conversational AI framework built in Go. It is designed to provide developers with a robust foundation for building advanced conversational systems that are platform-independent, customizable, and high-performing.
+
+With support for multiple LLM providers, insight generation, behavior management, and extensive storage capabilities, Eris is ideal for creating anything from simple chatbots to complex enterprise-grade conversational agents.
 
 ---
 
-## Core Features
+## Key Features
 
-### Plugin Architecture
-- **Core Manager System**: Build custom behaviors with ease.
-- **Conversation Manager**: Process conversations and manage their flow.
-- **Behavior Manager**: Adapt AI tone, style, and interaction preferences dynamically.
-- **Custom Manager Support**: Implement specialized capabilities tailored to your needs.
-
-### State Management
-- **Global State Management**: A centralized store for all shared and contextual data.
-- **Manager-Specific State**: Isolated state layers for modularity.
-- **Dynamic Injection**: Inject external data sources or processing logic on demand.
-- **Inter-Manager Communication**: Allow managers to coordinate and share context seamlessly.
+### Core Architecture
+- **Pluggable Framework**: Dynamic component swapping for flexibility and scalability.
+- **Event-Driven Design**: Subscribe to and trigger custom events for extensible functionality.
+- **Middleware Support**: Preprocess or modify input dynamically.
 
 ### LLM Integration
-- **Provider Abstraction**: Support for multiple LLM providers out of the box.
-- **Native OpenAI Integration**: Pre-configured for seamless operation.
-- **Extensible Interfaces**: Define your own AI providers via the `LLMProvider` interface.
-- **Customizable Model Selection**: Choose different models for specific tasks or fallback scenarios.
-- **Retry Handling**: Automatic retries for improved reliability.
+- **Multi-Provider Abstraction**: Connect to OpenAI, Hugging Face, or custom LLMs seamlessly.
+- **Token Management**: Utilities for token counting and input chunking.
+- **Mock Providers**: For local testing and development without real API usage.
 
-### Platform Support
-- **Platform-Agnostic Core**: Decoupled from platform-specific dependencies.
-- **Native Examples**: Examples for CLI and Slack integration.
-- **Extensible Platform System**: Define your own platform adapters for integrations like Discord, WhatsApp, or enterprise tools.
+### State and Context
+- **Session Management**: Manage user sessions with isolated and shared data layers.
+- **Cache Layer**: In-memory caching with support for TTL and cleanup.
+- **Global State**: Maintain a centralized state for cross-manager communication.
+
+### Insight Generation
+- **Extractors and Analyzers**: Tools for sentiment analysis, topic detection, and summarization.
+- **Reporters**: Generate detailed reports in both human-readable and JSON formats.
+- **Formatter Utilities**: Transform raw insights into usable outputs.
+
+### Task and Queue Management
+- **Task Queue**: Queue and process background tasks asynchronously.
+- **Scheduler**: Run recurring tasks with customizable intervals.
+- **Worker Pool**: Execute multiple tasks in parallel efficiently.
 
 ### Storage Layer
-- **Semantic Data Storage**: Uses PostgreSQL with vector embeddings for advanced search capabilities.
-- **ORM-Based Models**: Simplified database interactions.
-- **Customizable Storage**: Extend or replace the storage system for your unique needs.
+- **Database Abstraction**: PostgreSQL integration with support for CRUD operations.
+- **Indexing System**: Create and manage indices for fast data retrieval.
+- **Backup System**: Easily create and manage backups of stored data.
 
-### Toolkit System
-- **Pluggable Tools**: Easily add and manage toolkits.
-- **Built-in Tool Manager**: Manage and invoke tools during conversations.
-- **Function Support**: Call external APIs or services dynamically.
-- **Context-Aware Execution**: Tools operate with real-time context for better results.
+### Observability
+- **Logger**: Multi-level logging system (Info, Debug, Error).
+- **Analytics**: Track and report system usage, events, and custom metrics.
+- **Event System**: Event-driven architecture for extensibility.
+
+---
+
+## Installation
+
+### Prerequisites
+- Go >= 1.19
+- PostgreSQL (optional, for persistent storage)
+
+### Clone the Repository
+```bash
+git clone https://github.com/eris-home/eris
+cd eris
+```
+
+### Configure Environment
+Create a `.env` file based on the provided `.env.example`:
+```env
+DB_URL=postgresql://user:password@localhost:5432/eris
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Install Dependencies
+```bash
+go mod download
+```
 
 ---
 
 ## Quick Start
 
-1. **Clone the repository:**
+### Running the Engine
+```bash
+go run examples/cli/main.go
+```
 
-   ```bash
-   git clone https://github.com/eris-home/eris
-   ```
+### Example: Adding a Route
+Here is a simple example of using the `Engine` to add a route:
+```go
+package main
 
-2. **Configure environment variables:**
-   Copy `.env.example` to `.env` and update settings:
+import (
+    "github.com/eris-home/eris/engine"
+)
 
-   ```env
-   DB_URL=postgresql://user:password@localhost:5432/eris
-   OPENAI_API_KEY=your_openai_api_key
-   ```
+func main() {
+    e := engine.NewEngine()
 
-3. **Install dependencies:**
+    // Register a simple route
+    e.RegisterRoute("hello", func(input string) {
+        fmt.Println("Hello, Eris!")
+    })
 
-   ```bash
-   go mod download
-   ```
+    e.Run("hello")
+}
+```
 
-4. **Run a CLI example:**
-
-   ```bash
-   go run examples/cli/main.go
-   ```
-
-5. **Run the Slack bot:**
-
-   ```bash
-   go run examples/slack/main.go
-   ```
+### Example: Event System
+```go
+e.On("user_logged_in", func(event string, data map[string]interface{}) {
+    fmt.Printf("Event: %s triggered with data: %v
+", event, data)
+})
+e.Trigger("user_logged_in", map[string]interface{}{"user_id": 123, "name": "Alice"})
+```
 
 ---
 
 ## Architecture
 
-The project is designed with clean modularity:
+The project is structured into the following directories:
 
-- **engine**: The conversation engine core.
-- **manager**: Manager framework for modular functionality.
-- **managers/**: Built-in manager implementations.
-- **state**: Shared state utilities for conversation contexts.
-- **llm**: LLM provider interfaces and implementations.
-- **storage**: Data storage utilities and vector-based indexing.
-- **tools/**: Built-in tools for dynamic functionality.
-- **examples/**: Platform-specific examples and demos.
+### **Engine**
+- **`engine/engine.go`**: Core execution logic, middleware, lifecycle management.
+- **`engine/logger.go`**: Handles structured logging.
+- **`engine/router.go`**: Maps user input to specific handlers.
+- **`engine/utils.go`**: Provides utility functions like input normalization.
+- **`engine/validator.go`**: Validates user input for correctness.
+
+### **LLM**
+- **`llm/llm.go`**: Defines interfaces for LLMs and a manager to handle providers.
+- **`llm/connector.go`**: Manages HTTP connections to LLM APIs.
+- **`llm/helper.go`**: Token counting, chunk splitting utilities.
+- **`llm/mock.go`**: Mock provider for testing without real API calls.
+- **`llm/provider.go`**: Generic provider abstraction.
+
+### **State**
+- **`state/state.go`**: Global state management.
+- **`state/context.go`**: Per-session context management.
+- **`state/tracker.go`**: Tracks changes and state events.
+- **`state/session.go`**: Manages session lifecycle and metadata.
+- **`state/cache.go`**: In-memory cache implementation.
+
+### **Insight**
+- **`insight/analyzer.go`**: Performs sentiment analysis, topic extraction, etc.
+- **`insight/extractor.go`**: Extracts insights from conversations.
+- **`insight/formatter.go`**: Formats insights into human-readable or structured formats.
+- **`insight/insight.go`**: Manages insights and their storage.
+- **`insight/reporter.go`**: Generates reports based on insights.
+
+### **Storage**
+- **`storage/storage.go`**: Abstracts common storage operations.
+- **`storage/database.go`**: Connects to and interacts with PostgreSQL.
+- **`storage/indexer.go`**: Creates and manages indices for fast data lookup.
+- **`storage/backup.go`**: Handles backup creation and management.
+- **`storage/retriever.go`**: Retrieves data from storage.
+
+### **Managers**
+- **`manager/manager.go`**: Base manager system.
+- **`manager/analytics.go`**: Tracks system usage and custom events.
+- **`manager/observer.go`**: Implements the observer pattern.
+- **`manager/scheduler.go`**: Schedules recurring tasks.
+- **`manager/worker.go`**: Handles background task execution.
 
 ---
 
-## Using Eris as a Module
+## Testing
 
-### Add Eris to your project:
-
+### Run Unit Tests
 ```bash
-go get github.com/eris-home/eris
+go test ./... -v
 ```
 
-### Import the relevant packages:
-
+### Mock Provider
+Use the `MockProvider` to test LLM interactions locally:
 ```go
-import (
-  "github.com/eris-home/eris/engine"
-  "github.com/eris-home/eris/llm"
-  "github.com/eris-home/eris/manager"
-  "github.com/eris-home/eris/managers/conversation"
-  "github.com/eris-home/eris/managers/behavior"
-)
-```
-
-### Basic Usage Example:
-
-```go
-// Initialize the LLM client
-llmClient, err := llm.NewClient(llm.Config{
-  Provider:    llm.ProviderOpenAI,
-  APIKey:      os.Getenv("OPENAI_API_KEY"),
-  DefaultModel: "gpt-4",
-})
-
-// Create a new engine instance
-engine, err := engine.NewEngine(
-  engine.WithLLM(llmClient),
-  engine.WithStorage(storageClient),
-)
-
-// Create a new conversation state
-state, err := engine.NewState("actor_id", "session_id", "What’s the weather like?")
-if err != nil {
-  log.Fatal(err)
-}
-
-// Process the user’s input
-response, err := engine.Process(state)
-if err != nil {
-  log.Fatal(err)
-}
-
+mock := llm.NewMockProvider("TestMock")
+response, _ := mock.GenerateText(llm.LLMRequest{Prompt: "Hello"})
 fmt.Println(response.Text)
 ```
 
 ---
 
-## Available Packages
+## Contribution
 
-- **eris/engine**: The conversation engine core.
-- **eris/llm**: LLM interfaces and providers.
-- **eris/manager**: Base manager system.
-- **eris/managers/**: Built-in manager implementations.
-- **eris/state**: State utilities for tracking context.
-- **eris/storage**: Data storage implementations.
+We welcome contributions! Please follow these steps:
+1. Fork the repository.
+2. Create a new branch for your feature.
+3. Commit and push your changes.
+4. Open a pull request.
+
+---
+
+## License
+
+Eris is licensed under the MIT License. See `LICENSE` for details.
+
+---
+
+## Contact
+
+For questions or support, please contact us at **support@eris-home.com**.
